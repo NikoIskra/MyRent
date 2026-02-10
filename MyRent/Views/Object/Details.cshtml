@@ -1,0 +1,121 @@
+﻿@{
+    ViewData["Title"] = "Object Details";
+}
+
+@model MyRent.Models.RentObject
+
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="mb-4">
+                <h1 class="display-5 fw-bold">@Model.Name</h1>
+                <p class="fs-5 text-muted">
+                    <i class="bi bi-geo-alt-fill text-danger"></i>
+                    @Model.Address, @Model.CityName, @Model.Country
+                </p>
+            </div>
+
+            <div class="card mb-4 border-0 bg-light">
+                <div class="card-body">
+                    <div class="row text-center row-cols-2 row-cols-sm-4 g-3">
+                        <div class="col">
+                            <i class="bi bi-people fs-3"></i>
+                            <p class="mb-0">Broj osoba: @Model.CanSleepMax </p>
+                        </div>
+                        <div class="col">
+                            <i class="bi bi-door-open fs-3"></i>
+                            <p class="mb-0">Broj soba: @Model.Bedrooms </p>
+                        </div>
+                        <div class="col">
+                            <i class="bi bi-bed fs-3"></i>
+                            <p class="mb-0">Broj kreveta: @Model.Beds</p>
+                        </div>
+                        <div class="col">
+                            <i class="bi bi-droplet fs-3"></i>
+                            <p class="mb-0">Broj kupaonica: @Model.Bathrooms</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                @if (Model.InstanBooking == "Y")
+                {
+                    <span class="badge bg-success p-2">
+                        <i class="bi bi-lightning-fill"></i> Instant Booking dostupan
+                    </span>
+                }
+                else
+                {
+                    <span class="badge bg-warning text-dark p-2">
+                        <i class="bi bi-chat-dots"></i> Na upit
+                    </span>
+                }
+            </div>
+
+            <div class="mb-5">
+                <h4 class="mb-3">Galerija fotografija</h4>
+                <div class="row g-2">
+                    @if (Model.gallery != null && Model.gallery.Any())
+                    {
+                        foreach (var pic in Model.gallery)
+                        {
+                            <div class="col-6 col-md-3">
+                                <div class="ratio ratio-1x1 overflow-hidden rounded shadow-sm border">
+                                    <a href="@pic.PictureLink" target="_blank">
+                                        <img src="@pic.PictureLink"
+                                             class="img-fluid h-100 w-100"
+                                             style="object-fit: cover;"
+                                             alt="Slika objekta" />
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="col-12">
+                            <p class="text-muted">Nema dodatnih slika za prikaz.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-dark text-white">
+                    Mogućnosti plaćanja
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Kartično plaćanje (PayCard)
+                        <span>@(Model.PayCard == "Y" ? "✅" : "❌")</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Bankovni prijenos (IBAN)
+                        <span>@(Model.PayIban == "Y" ? "✅" : "❌")</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Gotovina (Cash)
+                        <span>@(Model.PayCash == "Y" ? "✅" : "❌")</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card shadow-sm border-light mb-4">
+                <div class="card-body">
+                    <small class="text-muted d-block">ID: @Model.IdHash</small>
+                    <small class="text-muted d-block">Tip: @Model.ObjectType</small>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left"></i> Natrag na listu
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

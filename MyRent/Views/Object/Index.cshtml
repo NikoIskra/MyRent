@@ -1,0 +1,146 @@
+﻿@{
+    ViewData["Title"] = "Object List";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Dostupni objekti</h2>
+        <span class="badge bg-primary rounded-pill" id="object-count">Učitavanje...</span>
+    </div>
+
+    <div id="loader-wrapper" class="d-flex flex-column justify-content-center align-items-center" style="min-height: 400px;">
+        <div class="loader"></div>
+        <p class="mt-3 text-muted fw-light">Dohvaćamo najbolje ponude za vas...</p>
+    </div>
+
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6 mb-2 mb-md-0">
+            <div class="input-group">
+                <input type="text" id="search-input" class="form-control" placeholder="Pretraži objekte...">
+                <button class="btn btn-primary" type="button" onclick="loadData()">Pretraži</button>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-2 mb-md-0">
+            <select id="page-size-select" class="form-select" onchange="loadData()">
+                <option value="3">3 po stranici</option>
+                <option value="6">6 po stranici</option>
+                <option value="9">9 po stranici</option>
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <select id="page-number-select" class="form-select" onchange="loadData()">
+                <option value="1">Stranica 1</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="object-container" class="row d-none">
+    </div>
+</div>
+
+<style>
+    .loader {
+        width: 40px;
+        aspect-ratio: 1;
+        --c: linear-gradient(#000 0 0);
+        --r1: radial-gradient(farthest-side at bottom,#000 93%,#0000);
+        --r2: radial-gradient(farthest-side at top,#000 93%,#0000);
+        background: var(--c),var(--r1),var(--r2), var(--c),var(--r1),var(--r2), var(--c),var(--r1),var(--r2);
+        background-repeat: no-repeat;
+        animation: l2 1s infinite alternate;
+    }
+
+    @@keyframes l2 {
+        0%, 25% {
+            background-size: 8px 0,8px 4px,8px 4px,8px 0,8px 4px,8px 4px,8px 0,8px 4px,8px 4px;
+            background-position: 0 50%,0 calc(50% - 2px),0 calc(50% + 2px),50% 50%,50% calc(50% - 2px),50% calc(50% + 2px),100% 50%,100% calc(50% - 2px),100% calc(50% + 2px);
+        }
+
+        50% {
+            background-size: 8px 100%,8px 4px,8px 4px,8px 0,8px 4px,8px 4px,8px 0,8px 4px,8px 4px;
+            background-position: 0 50%,0 calc(0% - 2px),0 calc(100% + 2px),50% 50%,50% calc(50% - 2px),50% calc(50% + 2px),100% 50%,100% calc(50% - 2px),100% calc(50% + 2px);
+        }
+
+        75% {
+            background-size: 8px 100%,8px 4px,8px 4px,8px 100%,8px 4px,8px 4px,8px 0,8px 4px,8px 4px;
+            background-position: 0 50%,0 calc(0% - 2px),0 calc(100% + 2px),50% 50%,50% calc(0% - 2px),50% calc(100% + 2px),100% 50%,100% calc(50% - 2px),100% calc(50% + 2px);
+        }
+
+        95%, 100% {
+            background-size: 8px 100%,8px 4px, 8px 4px,8px 100%,8px 4px,8px 4px,8px 100%,8px 4px,8px 4px;
+            background-position: 0 50%,0 calc(0% - 2px),0 calc(100% + 2px),50% 50%,50% calc(0% - 2px),50% calc(100% + 2px),100% 50%,100% calc(0% - 2px),100% calc(100% + 2px);
+        }
+    }
+</style>
+
+<script>
+
+    function loadData() {
+        const query = document.getElementById('search-input').value;
+        const pageNumber = document.getElementById('page-number-select');
+        const pageNumberValue = document.getElementById('page-number-select').value;
+        const pageSize = document.getElementById('page-size-select').value;
+
+        const container = document.getElementById('object-container');
+        const loaderWrapper = document.getElementById('loader-wrapper');
+        const countBadge = document.getElementById('object-count');
+
+        loaderWrapper.classList.remove('d-none');
+        container.classList.add('d-none');
+
+        fetch(`/Object/GetObjects?query=${encodeURIComponent(query)}&page=${pageNumberValue}&pageSize=${pageSize}`)
+            .then(response => {
+                if (!response.ok) throw new Error("Network response was not ok");
+                return response.json();
+            })
+            .then(response => {
+                countBadge.innerText = response.totalItems + " objekata";
+
+                let html = '';
+                response.data.forEach((obj) => {
+                    html += `
+                        <div class="col-sm-6 col-lg-4 mb-4">
+                            <div class="card h-100 shadow-sm border-0">
+                                <img src="${obj.picutre_main_url}"
+                                     class="card-img-top"
+                                     style="height:200px; object-fit:cover;">
+                                <div class="card-body">
+                                    <h5 class="card-title fw-bold">${obj.name}</h5>
+                                    <p class="text-muted small">${obj.city_name || ''}, ${obj.country || ''}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="small text-secondary">
+                                            <i class="bi bi-people"></i> Broj osoba: ${obj.can_sleep_optimal}, Maksimalni broj osoba: ${obj.can_sleep_max}
+                                        </span>
+                                        <span class="badge bg-info text-dark">${obj.object_type || ''}</span>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-white border-0 pb-3">
+                                    <a href="/Object/Details?id_hash=${obj.id_hash}" class="btn btn-primary w-100">
+                                        Detalji objekta
+                                    </a>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+
+                let optionsHtml = '';
+                for (let i = 1; i <= response.totalPages; i++) {
+                    optionsHtml += `<option value="${i}" ${i == response.currentPage ? 'selected' : ''}>Stranica ${i}</option>`;
+                }
+                pageNumber.innerHTML = optionsHtml;
+
+                container.innerHTML = html;
+                loaderWrapper.classList.add('d-none');
+                container.classList.remove('d-none');
+            })
+            .catch(error => {
+                console.error('Greška:', error);
+                loaderWrapper.innerHTML =
+                    '<div class="alert alert-danger">Došlo je do greške pri učitavanju podataka.</div>';
+            });
+    }
+
+    document.addEventListener("DOMContentLoaded", loadData);
+</script>
