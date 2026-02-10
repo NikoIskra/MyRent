@@ -75,7 +75,7 @@
 
 <script>
 
-    function loadData() {
+    async function loadData() {
         const query = document.getElementById('search-input').value;
         const pageNumber = document.getElementById('page-number-select');
         const pageNumberValue = document.getElementById('page-number-select').value;
@@ -88,56 +88,66 @@
         loaderWrapper.classList.remove('d-none');
         container.classList.add('d-none');
 
-        fetch(`/Object/GetObjects?query=${encodeURIComponent(query)}&page=${pageNumberValue}&pageSize=${pageSize}`)
-            .then(response => {
-                if (!response.ok) throw new Error("Network response was not ok");
-                return response.json();
-            })
-            .then(response => {
-                countBadge.innerText = response.totalItems + " objekata";
+        try {
+        const response = await fetch(`/Object/GetObjects?query=${encodeURIComponent(query)}&page=${pageNumberValue}&pageSize=${pageSize}`);
 
-                let html = '';
-                response.data.forEach((obj) => {
-                    html += `
-                        <div class="col-sm-6 col-lg-4 mb-4">
-                            <div class="card h-100 shadow-sm border-0">
-                                <img src="${obj.picutre_main_url}"
-                                     class="card-img-top"
-                                     style="height:200px; object-fit:cover;">
-                                <div class="card-body">
-                                    <h5 class="card-title fw-bold">${obj.name}</h5>
-                                    <p class="text-muted small">${obj.city_name || ''}, ${obj.country || ''}</p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span class="small text-secondary">
-                                            <i class="bi bi-people"></i> Broj osoba: ${obj.can_sleep_optimal}, Maksimalni broj osoba: ${obj.can_sleep_max}
-                                        </span>
-                                        <span class="badge bg-info text-dark">${obj.object_type || ''}</span>
-                                    </div>
-                                </div>
-                                <div class="card-footer bg-white border-0 pb-3">
-                                    <a href="/Object/Details?id_hash=${obj.id_hash}" class="btn btn-primary w-100">
-                                        Detalji objekta
-                                    </a>
-                                </div>
+        if (!response.ok) {
+            let errorData;
+            try {
+                errorData = await response.json();
+            } catch (e) {
+                errorData = { error: "Greška na poslužitelju (nepoznat format)." };
+            }
+            throw new Error(errorData.message || "Greška na poslužiteljuddd");
+        }
+
+        const responseData = await response.json();
+
+        countBadge.innerText = responseData.totalItems + " objekata";
+
+        let html = '';
+        responseData.data.forEach((obj) => {
+            html += `
+                <div class="col-sm-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        <img src="${obj.picutre_main_url}"
+                             class="card-img-top"
+                             style="height:200px; object-fit:cover;">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold">${obj.name}</h5>
+                            <p class="text-muted small">${obj.city_name || ''}, ${obj.country || ''}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="small text-secondary">
+                                    <i class="bi bi-people"></i> Osoba: ${obj.can_sleep_optimal}
+                                </span>
+                                <span class="badge bg-info text-dark">${obj.object_type || ''}</span>
                             </div>
-                        </div>`;
-                });
+                        </div>
+                        <div class="card-footer bg-white border-0 pb-3">
+                            <a href="/Object/Details?id_hash=${obj.id_hash}" class="btn btn-primary w-100">
+                                Detalji
+                            </a>
+                        </div>
+                    </div>
+                </div>`;
+        });
 
-                let optionsHtml = '';
-                for (let i = 1; i <= response.totalPages; i++) {
-                    optionsHtml += `<option value="${i}" ${i == response.currentPage ? 'selected' : ''}>Stranica ${i}</option>`;
-                }
-                pageNumber.innerHTML = optionsHtml;
+        let optionsHtml = '';
+        for (let i = 1; i <= responseData.totalPages; i++) {
+            optionsHtml += `<option value="${i}" ${i == responseData.currentPage ? 'selected' : ''}>Stranica ${i}</option>`;
+        }
+        pageNumber.innerHTML = optionsHtml;
 
-                container.innerHTML = html;
-                loaderWrapper.classList.add('d-none');
-                container.classList.remove('d-none');
-            })
-            .catch(error => {
-                console.error('Greška:', error);
-                loaderWrapper.innerHTML =
-                    '<div class="alert alert-danger">Došlo je do greške pri učitavanju podataka.</div>';
-            });
+        container.innerHTML = html;
+        loaderWrapper.classList.add('d-none');
+        container.classList.remove('d-none');
+
+    } catch (error) {
+        console.error('Greška:', error);
+        loaderWrapper.classList.add('d-none');
+        container.innerHTML = `<div class="alert alert-danger w-100">${error.message}</div>`;
+        container.classList.remove('d-none');
+    }
     }
 
     document.addEventListener("DOMContentLoaded", loadData);

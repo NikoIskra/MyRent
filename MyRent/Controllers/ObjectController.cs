@@ -25,7 +25,17 @@ namespace MyRent.Controllers
         {
             try
             {
-                var rentObjects = await _client.GetFromJsonAsync<List<RentObject>>("objects/simple_list");
+                var response = await _client.GetAsync("objects/simple_list");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("API Greška: {StatusCode}, Body: {Body}", response.StatusCode, errorContent);
+
+                    return StatusCode((int)response.StatusCode, errorContent);
+                }
+
+                var rentObjects = await response.Content.ReadFromJsonAsync<List<RentObject>>();
 
                 if (rentObjects == null)
                 {
@@ -46,7 +56,7 @@ namespace MyRent.Controllers
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize).ToList();
 
-                var response = new PaginatedResponse<RentObject>
+                var paginatedResponse = new PaginatedResponse<RentObject>
                 {
                     Data = paginatedList,
                     CurrentPage = page,
@@ -54,13 +64,15 @@ namespace MyRent.Controllers
                     TotalPages = totalPages
                 };
 
-                return Json(response);
+                return Json(paginatedResponse);
             }
             catch (Exception ex)
             {
                 string message = ex.Message;
                 _logger.LogError("Error fetching objects. Message: {Message}", message);
-                return Content(message);
+
+
+                return StatusCode(500, new { status = "error", message = message });
             }
         }
 
