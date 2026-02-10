@@ -98,7 +98,7 @@
             } catch (e) {
                 errorData = { error: "Greška na poslužitelju (nepoznat format)." };
             }
-            throw new Error(errorData.message || "Greška na poslužiteljuddd");
+            throw new Error(errorData.message || "Greška na poslužitelju");
         }
 
         const responseData = await response.json();
@@ -143,7 +143,7 @@
         container.classList.remove('d-none');
 
     } catch (error) {
-        console.error('Greška:', error);
+        console.error(error);
         loaderWrapper.classList.add('d-none');
         container.innerHTML = `<div class="alert alert-danger w-100">${error.message}</div>`;
         container.classList.remove('d-none');
