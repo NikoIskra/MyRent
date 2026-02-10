@@ -80,7 +80,19 @@ namespace MyRent.Controllers
         {
             try
             {
-                var objects = await _client.GetFromJsonAsync<List<RentObject>>($"objects/simple_details?id_hash={id_hash}");
+                var response = await _client.GetAsync($"objects/simple_details?id_hash={id_hash}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("API Greška: {StatusCode}, Body: {Body}", response.StatusCode, errorContent);
+
+                    return StatusCode((int)response.StatusCode, errorContent);
+                }
+
+                var objects = await response.Content.ReadFromJsonAsync<List<RentObject>>();
+
+
                 var item = objects?.FirstOrDefault();
 
                 if (item == null)
