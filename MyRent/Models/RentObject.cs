@@ -21,9 +21,9 @@ namespace MyRent.Models
         [JsonPropertyName("object_type")]
         public string ObjectType { get; set; }
         [JsonPropertyName("latitude")]
-        public string Latitude { get; set; }
+        public double Latitude { get; set; }
         [JsonPropertyName("longitude")]
-        public string Longitude { get; set; }
+        public double Longitude { get; set; }
         [JsonPropertyName("adress")]
         public string Address { get; set; }
         [JsonPropertyName("city_name")]
